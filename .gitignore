@@ -1,0 +1,16 @@
+# YOLO Model Weights
+models/*.pt
+
+# YOLO Output & Logs
+runs/
+
+# Datasets
+datasets/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE Configuration
+.vscode/
