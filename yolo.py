@@ -3,7 +3,7 @@ from ultralytics import YOLO
 import torch
 print(torch.cuda.is_available())
 
-model = YOLO('models/yolov8n.pt').to('cuda')  # Modeli GPU'ya taşıyarak CUDA kullanımı etkinleştirildi
+model = YOLO('models/yolov8n.pt').to('cuda')
 
 kamera = cv2.VideoCapture(0)
 
@@ -16,7 +16,7 @@ while True:
         print("Kare alınamadı, çıkılıyor...")
         break
 
-    sonuclar = model(frame, conf=0.5)  # Alınan kare YOLO modeline gönderiliyor
+    sonuclar = model(frame, conf=0.5)
 
     for sonuc in sonuclar:
         islenmis_kare = sonuc.plot()
