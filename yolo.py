@@ -1,31 +1,50 @@
+"""
+Rock Paper Scissors - Real-Time Inference Script
+
+This script runs real-time object detection using the optimized YOLOv8s model
+via the system's webcam. 
+"""
+
 import cv2
-from ultralytics import YOLO
 import torch
-print(torch.cuda.is_available())
+from ultralytics import YOLO
 
-model = YOLO('models/yolov8n.pt').to('cuda')
+def run_inference():
+    # Dynamic hardware check
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"System running on: {device.upper()}")
 
-kamera = cv2.VideoCapture(0)
+    # Load the optimized model
+    model = YOLO('models/colab_best.pt').to(device)
 
-print("bekleyin kamera açılıyor")
+    # Initialize webcam
+    cap = cv2.VideoCapture(0)
+    print("Camera is starting, please wait...")
 
-while True:
+    while True:
+        success, frame = cap.read()
+        if not success:
+            print("Failed to grab frame, exiting...")
+            break
 
-    ret, frame = kamera.read()  # Kameradan kare alınıyor
-    if not ret:
-        print("Kare alınamadı, çıkılıyor...")
-        break
+        # Run YOLO inference (verbose=False keeps the terminal clean)
+        results = model(frame, conf=0.5, verbose=False)
 
-    sonuclar = model(frame, conf=0.5)
+        # Plot the results on the frame
+        for result in results:
+            annotated_frame = result.plot()
 
-    for sonuc in sonuclar:
-        islenmis_kare = sonuc.plot()
+        # Display the frame
+        cv2.imshow("Real-time Detection", annotated_frame)
 
-    cv2.imshow("realtime frame", islenmis_kare)
+        # Exit condition: Press 'q'
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    # Cleanup
+    cap.release()
+    cv2.destroyAllWindows()
+    print("System shut down.")
 
-kamera.release()
-cv2.destroyAllWindows()
-
+if __name__ == '__main__':
+    run_inference()

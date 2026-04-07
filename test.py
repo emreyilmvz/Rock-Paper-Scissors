@@ -2,52 +2,43 @@ import cv2
 import torch
 from ultralytics import YOLO
 
-class TasKagitMakasYapayZeka:
-    def __init__(self, model_yolu):
-        # Donanım kontrolü
-        self.cihaz = 'cuda' if torch.cuda.is_available() else 'cpu'
+class RockPaperScissorsDetector:
+    def __init__(self, model_path):
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.model = YOLO(model_path).to(self.device)
+        self.cap = cv2.VideoCapture(0)
         
-        # Model yükleme
-        self.model = YOLO(model_yolu).to(self.cihaz)
-        
-        # Kamera başlatma
-        self.kamera = cv2.VideoCapture(0)
-        
-    def calistir(self):
-        print("Kamera aktif. Çıkmak için 'q' tuşuna basınız.")
+    def run(self):
+        print("Camera active. Press 'q' to exit.")
         
         while True:
-            basarili_mi, frame = self.kamera.read()
-            if not basarili_mi:
-                print("Kamera bağlantısı hatası!")
+            success, frame = self.cap.read()
+            if not success:
+                print("Camera connection error!")
                 break
 
-            # Tahminleme ve görselleştirme
-            islenmis_kare = self.yapay_zekayi_uygula(frame)
-            
-            cv2.imshow("Tas Kagit Makas Tespit", islenmis_kare)
+            annotated_frame = self.process_frame(frame)
+            cv2.imshow("Rock Paper Scissors Detection", annotated_frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
                 
-        self.temizle()
+        self.cleanup()
 
-    def yapay_zekayi_uygula(self, frame):
-        # Tahmin parametreleri: Güven eşiği 0.25, loglar kapalı
-        sonuclar = self.model(frame, conf=0.25, verbose=False) 
+    def process_frame(self, frame):
+        results = self.model(frame, conf=0.25, verbose=False) 
         
-        for sonuc in sonuclar:
-            frame = sonuc.plot()
+        for result in results:
+            frame = result.plot()
             
         return frame
 
-    def temizle(self):
-        self.kamera.release()
+    def cleanup(self):
+        self.cap.release()
         cv2.destroyAllWindows()
-        print("Sistem kapatıldı.")
+        print("System shut down.")
 
 if __name__ == "__main__":
-    MODEL_ADRESI = 'runs/detect/train3/weights/best.pt'
-
-    uygulama = TasKagitMakasYapayZeka(MODEL_ADRESI)
-    uygulama.calistir()
+    MODEL_PATH = 'models/colab_best.pt'
+    detector = RockPaperScissorsDetector(MODEL_PATH)
+    detector.run()
